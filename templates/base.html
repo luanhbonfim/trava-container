@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Controle da Trava{% endblock %} · Peso Container</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="topo">
+        <a href="{% url 'painel' %}" class="marca" aria-label="Peso do Container">
+            <svg class="marca-svg" width="230" height="44" viewBox="0 0 230 44"
+                 xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Peso do Container">
+                <defs>
+                    <linearGradient id="wine" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#c9466f"/>
+                        <stop offset="1" stop-color="#6d1e37"/>
+                    </linearGradient>
+                </defs>
+                <!-- emblema -->
+                <rect x="2" y="3" width="38" height="38" rx="10" fill="url(#wine)"/>
+                <!-- container -->
+                <rect x="10" y="13" width="22" height="13" rx="1.5" fill="#f6eef1"/>
+                <g stroke="#8a2545" stroke-width="1.2" stroke-linecap="round">
+                    <line x1="13.5" y1="15.5" x2="13.5" y2="23.5"/>
+                    <line x1="17"   y1="15.5" x2="17"   y2="23.5"/>
+                    <line x1="20.5" y1="15.5" x2="20.5" y2="23.5"/>
+                    <line x1="24"   y1="15.5" x2="24"   y2="23.5"/>
+                    <line x1="27.5" y1="15.5" x2="27.5" y2="23.5"/>
+                </g>
+                <!-- plataforma da balança -->
+                <rect x="8" y="28.5" width="26" height="2.4" rx="1.2" fill="#f6eef1"/>
+                <!-- fulcro -->
+                <path d="M21 31 L17.5 36 L24.5 36 Z" fill="#f6eef1"/>
+                <!-- wordmark -->
+                <text x="50" y="21" font-family="'Segoe UI',Arial,sans-serif"
+                      font-size="16" font-weight="800" fill="#f3e9ec" letter-spacing=".3">Peso</text>
+                <text x="50" y="35" font-family="'Segoe UI',Arial,sans-serif"
+                      font-size="10.5" font-weight="600" fill="#b79aa4" letter-spacing="2">DO CONTAINER</text>
+            </svg>
+        </a>
+
+        {% if user.is_authenticated and sessao_restante %}
+        <div class="sessao-timer" id="sessao-timer" data-restante="{{ sessao_restante }}">
+            <span class="sessao-rotulo">Acesso encerra em</span>
+            <span class="sessao-rel" id="sessao-rel">--:--</span>
+        </div>
+        {% endif %}
+    </header>
+
+    <main class="conteudo">
+        {% if messages %}
+        <ul class="mensagens" id="mensagens">
+            {% for m in messages %}
+            <li class="msg {{ m.tags }}">{{ m }}</li>
+            {% endfor %}
+        </ul>
+        <script>
+        (function () {
+            var box = document.getElementById('mensagens');
+            if (!box) return;
+            // Some com as mensagens (bloqueio/desbloqueio) após 7 segundos.
+            setTimeout(function () {
+                box.classList.add('mensagens-saindo');
+                setTimeout(function () { box.remove(); }, 500);
+            }, 7000);
+        })();
+        </script>
+        {% endif %}
+
+        {% block conteudo %}{% endblock %}
+    </main>
+
+    {% if user.is_authenticated and sessao_restante %}
+    <!-- Pop-up exibido quando a sessão expira -->
+    <div id="sessao-expirada" class="modal-overlay" hidden>
+        <div class="modal modal-sessao">
+            <div class="modal-sessao-icone">🔒</div>
+            <h2>Tempo de acesso encerrado</h2>
+            <p>Seu tempo de acesso terminou. Por segurança, faça login novamente para continuar.</p>
+            <div class="modal-acoes">
+                <a href="/login/?next=/" class="btn btn-vinho">Fazer login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        var el    = document.getElementById('sessao-timer');
+        var rel   = document.getElementById('sessao-rel');
+        var popup = document.getElementById('sessao-expirada');
+        if (!el || !rel) return;
+        var restante = parseInt(el.getAttribute('data-restante'), 10) || 0;
+
+        function fmt(s) {
+            var m = Math.floor(s / 60), ss = s % 60;
+            return m + ':' + (ss < 10 ? '0' : '') + ss;
+        }
+        function expirou() {
+            rel.textContent = '0:00';
+            if (popup) popup.hidden = false;
+        }
+        function tick() {
+            rel.textContent = fmt(Math.max(restante, 0));
+            el.classList.toggle('sessao-alerta', restante <= 15);
+            if (restante <= 0) {
+                expirou();
+                return;
+            }
+            restante -= 1;
+            setTimeout(tick, 1000);
+        }
+        tick();
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block titulo %}Painel{% endblock %}
+
+{% block conteudo %}
+<div class="card card-painel">
+    <h1>Trava do Peso do Container</h1>
+
+    {% if erro %}
+        <div class="status-box status-erro">
+            <span class="status-rotulo">Sistema indisponível</span>
+            <p class="status-detalhe">Não foi possível falar com o sistema. Chame a TI.</p>
+        </div>
+    {% else %}
+        <div class="status-box {% if status == 'ENABLED' %}status-ativa{% else %}status-inativa{% endif %}">
+            <span class="status-rotulo">Situação atual</span>
+            <span class="status-valor">
+                {% if status == 'ENABLED' %}TRAVA ATIVADA{% else %}TRAVA DESATIVADA{% endif %}
+            </span>
+        </div>
+
+        {% if perms.core.pode_operar_trava %}
+        <button type="button" class="btn btn-grande {% if status == 'ENABLED' %}btn-vermelho{% else %}btn-verde{% endif %}"
+                onclick="abrirConfirmacao()">
+            {% if status == 'ENABLED' %}Desativar trava{% else %}Ativar trava{% endif %}
+        </button>
+        {% else %}
+        <p class="dica">Você não tem permissão para operar a trava.</p>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% if not erro and perms.core.pode_operar_trava %}
+<!-- Modal de confirmação: pede o nome antes de executar a ação -->
+<div id="modal" class="modal-overlay" hidden>
+    <div class="modal">
+        <h2>
+            {% if status == 'ENABLED' %}Confirmar DESATIVAÇÃO{% else %}Confirmar ATIVAÇÃO{% endif %}
+        </h2>
+        <p>
+            Você vai
+            <strong>{% if status == 'ENABLED' %}DESATIVAR{% else %}ATIVAR{% endif %}</strong>
+            a trava. Informe seu nome para o registro.
+        </p>
+
+        <form method="post" action="{% url 'alternar' %}">
+            {% csrf_token %}
+            <label for="id_nome">Nome de quem está executando *</label>
+            <input type="text" name="nome_informado" id="id_nome"
+                   value="{{ nome_sugerido }}" required maxlength="150">
+
+            <label for="id_motivo">Motivo *</label>
+            <textarea name="motivo" id="id_motivo" rows="3" required maxlength="255"
+                      placeholder="Descreva o motivo desta ação"></textarea>
+
+            <div class="modal-acoes">
+                <button type="button" class="btn btn-cinza" onclick="fecharConfirmacao()">Cancelar</button>
+                <button type="submit" class="btn {% if status == 'ENABLED' %}btn-vermelho{% else %}btn-verde{% endif %}">
+                    {% if status == 'ENABLED' %}Desativar{% else %}Ativar{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirConfirmacao() {
+        document.getElementById('modal').hidden = false;
+        var campo = document.getElementById('id_nome');
+        campo.focus();
+        campo.select();
+    }
+    function fecharConfirmacao() {
+        document.getElementById('modal').hidden = true;
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') fecharConfirmacao();
+    });
+</script>
+{% endif %}
+{% endblock %}

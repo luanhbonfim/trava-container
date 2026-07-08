@@ -1,0 +1,25 @@
+# =============================================================================
+# Dependências do PESO_CONTAINER — controle da trava (trigger Oracle)
+# =============================================================================
+
+# Django 5.2 (LTS) roda em Python 3.10+; 6.0 exige Python 3.12+.
+# A faixa abaixo deixa cada ambiente pegar a maior versão compatível.
+Django>=5.2,<6.1
+python-dotenv>=1.0,<2
+
+# Driver Oracle (python-oracledb). Usado em core/services/oracle.py.
+# Por padrão roda em THIN mode (não precisa do Oracle Instant Client).
+# Se o banco for Oracle 11g (11.2), o thin mode NÃO é suportado: nesse caso
+# instale o Instant Client e defina ORACLE_THICK=True no .env.
+oracledb>=3.4,<4
+
+# --- Produção ---------------------------------------------------------------
+# Servidor WSGI (Linux).
+gunicorn>=23,<24
+
+# Driver PostgreSQL (psycopg 3). O extra [binary] dispensa libpq-dev/compilador.
+# Usado quando DB_NAME está definido no .env (senão o app usa SQLite).
+psycopg[binary]>=3.2,<4
+
+# Serve os arquivos estáticos (CSS) sem precisar de nginx, mesmo com DEBUG=False.
+whitenoise>=6.6,<7

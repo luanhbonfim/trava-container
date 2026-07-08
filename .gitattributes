@@ -1,0 +1,2 @@
+# Normaliza quebras de linha para LF (o deploy é em Linux)
+* text=auto eol=lf

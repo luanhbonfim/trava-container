@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block titulo %}Logs{% endblock %}
+
+{% block conteudo %}
+<div class="card card-largo">
+    <h1>Logs de auditoria</h1>
+    <p class="sub">Últimos 500 registros (mais recentes primeiro).</p>
+
+    <div class="tabela-wrap">
+        <table class="tabela">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Ação</th>
+                    <th>Nome informado</th>
+                    <th>Motivo</th>
+                    <th>Usuário</th>
+                    <th>Antes</th>
+                    <th>Depois</th>
+                    <th>Resultado</th>
+                    <th>IP</th>
+                    <th>Mensagem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in registros %}
+                <tr>
+                    <td>{{ r.criado_em|date:"d/m/Y H:i:s" }}</td>
+                    <td>{{ r.get_acao_display }}</td>
+                    <td>{{ r.nome_informado }}</td>
+                    <td class="msg-cel">{{ r.motivo|default:"—" }}</td>
+                    <td>{{ r.usuario.username|default:"—" }}</td>
+                    <td>{{ r.status_anterior|default:"—" }}</td>
+                    <td>{{ r.status_final|default:"—" }}</td>
+                    <td>
+                        {% if r.sucesso %}
+                            <span class="tag tag-ok">OK</span>
+                        {% else %}
+                            <span class="tag tag-falha">FALHA</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.ip|default:"—" }}</td>
+                    <td class="msg-cel">{{ r.mensagem }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="vazio">Nenhum registro ainda.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

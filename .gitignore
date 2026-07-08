@@ -1,0 +1,26 @@
+# Ambiente / segredos (NUNCA versionar)
+.env
+.env.*
+
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+
+# Banco local
+db.sqlite3
+db.sqlite3-journal
+
+# Estáticos coletados (gerados por collectstatic)
+staticfiles/
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
