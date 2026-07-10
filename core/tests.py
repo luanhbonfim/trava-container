@@ -252,6 +252,19 @@ class LogsPermissaoTests(TestCase):
         self.assertContains(resp, 'Logs de auditoria')
 
 
+class SessaoTests(TestCase):
+    def test_admin_tem_sessao_longa(self):
+        User.objects.create_user('ti', password='senha123', is_staff=True)
+        self.client.login(username='ti', password='senha123')
+        # muito acima de 60s (janela operacional)
+        self.assertGreater(self.client.session.get_expiry_age(), 3600)
+
+    def test_operador_tem_janela_de_1min(self):
+        User.objects.create_user('op', password='senha123')
+        self.client.login(username='op', password='senha123')
+        self.assertLessEqual(self.client.session.get_expiry_age(), 60)
+
+
 class HostnameTests(TestCase):
     def test_hostname_resolve(self):
         from core import views
