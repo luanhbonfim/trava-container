@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import GroupAdmin, UserAdmin
 from django.contrib.auth.models import Group, Permission, User
+from django.utils import timezone
 
 from .models import LogTrigger
 
@@ -44,9 +45,13 @@ admin.site.register(User, UsuarioAdmin)
 @admin.register(LogTrigger)
 class LogTriggerAdmin(admin.ModelAdmin):
     list_display = (
-        'criado_em', 'get_acao_display', 'nome_informado', 'motivo',
+        'data_hora', 'get_acao_display', 'nome_informado', 'motivo',
         'usuario', 'status_anterior', 'status_final', 'sucesso', 'ip', 'hostname',
     )
+
+    @admin.display(description='Data/Hora', ordering='criado_em')
+    def data_hora(self, obj):
+        return timezone.localtime(obj.criado_em).strftime('%d/%m/%Y %H:%M:%S')
     list_filter = ('acao', 'sucesso', 'criado_em')
     search_fields = (
         'nome_informado', 'motivo', 'usuario__username', 'mensagem',

@@ -293,6 +293,16 @@ class AdminPermissoesTests(TestCase):
             {'pode_operar_trava', 'pode_ver_logs'},
         )
 
+    def test_admin_data_hora_formato(self):
+        import re
+        from django.contrib.admin.sites import site
+        from core.admin import LogTriggerAdmin
+        log = LogTrigger.objects.create(
+            nome_informado='x', motivo='y', acao=LogTrigger.ACAO_ATIVAR, sucesso=True,
+        )
+        texto = LogTriggerAdmin(LogTrigger, site).data_hora(log)
+        self.assertRegex(texto, r'^\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}$')
+
 
 class GruposCommandTests(TestCase):
     def test_setup_grupos_cria_grupos_com_permissoes(self):
