@@ -45,14 +45,17 @@ admin.site.register(User, UsuarioAdmin)
 class LogTriggerAdmin(admin.ModelAdmin):
     list_display = (
         'criado_em', 'get_acao_display', 'nome_informado', 'motivo',
-        'usuario', 'status_anterior', 'status_final', 'sucesso', 'ip',
+        'usuario', 'status_anterior', 'status_final', 'sucesso', 'ip', 'hostname',
     )
     list_filter = ('acao', 'sucesso', 'criado_em')
-    search_fields = ('nome_informado', 'motivo', 'usuario__username', 'mensagem')
+    search_fields = (
+        'nome_informado', 'motivo', 'usuario__username', 'mensagem',
+        'ip', 'hostname',
+    )
     date_hierarchy = 'criado_em'
     readonly_fields = (
         'criado_em', 'usuario', 'nome_informado', 'motivo', 'acao',
-        'status_anterior', 'status_final', 'sucesso', 'mensagem', 'ip',
+        'status_anterior', 'status_final', 'sucesso', 'mensagem', 'ip', 'hostname',
     )
 
     def has_add_permission(self, request):

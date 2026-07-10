@@ -1,4 +1,5 @@
 import logging
+import socket
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -16,6 +17,19 @@ def _ip(request):
     if xff:
         return xff.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR')
+
+
+def _hostname(ip):
+    """
+    Resolve o hostname da máquina de origem via DNS reverso (PTR).
+    Retorna '' se não houver IP ou o DNS reverso não resolver.
+    """
+    if not ip:
+        return ''
+    try:
+        return socket.gethostbyaddr(ip)[0]
+    except Exception:
+        return ''
 
 
 def _consultar_status():
@@ -58,6 +72,8 @@ def alternar(request):
         messages.error(request, 'Não foi possível falar com o sistema. Chame a TI.')
         return redirect('painel')
 
+    ip = _ip(request)
+
     # Decide a ação a partir de UMA única leitura de status e executa
     # diretamente a operação correspondente — assim o log reflete
     # exatamente o que foi feito (sem reler o status no meio).
@@ -74,7 +90,8 @@ def alternar(request):
         motivo=motivo,
         acao=acao,
         status_anterior=status_atual or '',
-        ip=_ip(request),
+        ip=ip,
+        hostname=_hostname(ip),
     )
 
     try:

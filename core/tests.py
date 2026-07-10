@@ -252,6 +252,25 @@ class LogsPermissaoTests(TestCase):
         self.assertContains(resp, 'Logs de auditoria')
 
 
+class HostnameTests(TestCase):
+    def test_hostname_resolve(self):
+        from core import views
+        with mock.patch('core.views.socket.gethostbyaddr',
+                        return_value=('PC-EXPORT01', [], ['10.10.1.50'])):
+            self.assertEqual(views._hostname('10.10.1.50'), 'PC-EXPORT01')
+
+    def test_hostname_falha_retorna_vazio(self):
+        from core import views
+        with mock.patch('core.views.socket.gethostbyaddr',
+                        side_effect=OSError('no PTR')):
+            self.assertEqual(views._hostname('10.10.1.50'), '')
+
+    def test_hostname_sem_ip(self):
+        from core import views
+        self.assertEqual(views._hostname(''), '')
+        self.assertEqual(views._hostname(None), '')
+
+
 class AdminPermissoesTests(TestCase):
     def test_admin_so_oferece_permissoes_do_app(self):
         from core.admin import _queryset_permissoes_app

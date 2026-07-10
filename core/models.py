@@ -37,6 +37,10 @@ class LogTrigger(models.Model):
     sucesso = models.BooleanField('Sucesso', default=False)
     mensagem = models.TextField('Mensagem', blank=True)
     ip = models.GenericIPAddressField('IP de origem', null=True, blank=True)
+    hostname = models.CharField(
+        'Hostname de origem', max_length=255, blank=True, default='',
+        help_text='Nome da máquina de origem (DNS reverso do IP, quando disponível).',
+    )
 
     class Meta:
         verbose_name = 'Log da Trigger'
