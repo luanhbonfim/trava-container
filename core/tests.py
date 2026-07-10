@@ -252,6 +252,16 @@ class LogsPermissaoTests(TestCase):
         self.assertContains(resp, 'Logs de auditoria')
 
 
+class AdminPermissoesTests(TestCase):
+    def test_admin_so_oferece_permissoes_do_app(self):
+        from core.admin import _queryset_permissoes_app
+        qs = _queryset_permissoes_app()
+        self.assertEqual(
+            set(qs.values_list('codename', flat=True)),
+            {'pode_operar_trava', 'pode_ver_logs'},
+        )
+
+
 class GruposCommandTests(TestCase):
     def test_setup_grupos_cria_grupos_com_permissoes(self):
         from django.contrib.auth.models import Group
