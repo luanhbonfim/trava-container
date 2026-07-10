@@ -266,22 +266,48 @@ class SessaoTests(TestCase):
 
 
 class HostnameTests(TestCase):
-    def test_hostname_resolve(self):
+    def test_dns_resolve(self):
         from core import views
         with mock.patch('core.views.socket.gethostbyaddr',
-                        return_value=('PC-EXPORT01', [], ['10.10.1.50'])):
-            self.assertEqual(views._hostname('10.10.1.50'), 'PC-EXPORT01')
+                        return_value=('PC-DNS', [], ['10.10.1.50'])):
+            self.assertEqual(views._hostname_dns('10.10.1.50'), 'PC-DNS')
 
-    def test_hostname_falha_retorna_vazio(self):
+    def test_dns_falha(self):
         from core import views
-        with mock.patch('core.views.socket.gethostbyaddr',
-                        side_effect=OSError('no PTR')):
-            self.assertEqual(views._hostname('10.10.1.50'), '')
+        with mock.patch('core.views.socket.gethostbyaddr', side_effect=OSError):
+            self.assertEqual(views._hostname_dns('10.10.1.50'), '')
 
-    def test_hostname_sem_ip(self):
+    def test_netbios_parse(self):
+        from core import views
+        saida = (
+            "Looking up status of 10.10.1.50\n"
+            "\tDESKTOP-EXPORT  <00> -         B <ACTIVE>\n"
+            "\tWORKGROUP       <00> - <GROUP> B <ACTIVE>\n"
+            "\tMAC Address = 00-11-22-33-44-55\n"
+        )
+        fake = mock.MagicMock(stdout=saida)
+        with mock.patch('core.views.subprocess.run', return_value=fake):
+            self.assertEqual(views._hostname_netbios('10.10.1.50'), 'DESKTOP-EXPORT')
+
+    def test_netbios_indisponivel(self):
+        from core import views
+        with mock.patch('core.views.subprocess.run', side_effect=FileNotFoundError):
+            self.assertEqual(views._hostname_netbios('10.10.1.50'), '')
+
+    def test_prefere_netbios_com_fallback_dns(self):
+        from core import views
+        with mock.patch('core.views._hostname_netbios', return_value='PC-NB'), \
+             mock.patch('core.views._hostname_dns', return_value='PC-DNS'):
+            self.assertEqual(views._hostname('10.10.1.50'), 'PC-NB')
+        with mock.patch('core.views._hostname_netbios', return_value=''), \
+             mock.patch('core.views._hostname_dns', return_value='PC-DNS'):
+            self.assertEqual(views._hostname('10.10.1.50'), 'PC-DNS')
+
+    def test_ip_invalido_ou_vazio(self):
         from core import views
         self.assertEqual(views._hostname(''), '')
         self.assertEqual(views._hostname(None), '')
+        self.assertEqual(views._hostname('nao-eh-ip'), '')
 
 
 class AdminPermissoesTests(TestCase):

@@ -1,5 +1,7 @@
+import ipaddress
 import logging
 import socket
+import subprocess
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -19,17 +21,48 @@ def _ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
-def _hostname(ip):
-    """
-    Resolve o hostname da máquina de origem via DNS reverso (PTR).
-    Retorna '' se não houver IP ou o DNS reverso não resolver.
-    """
-    if not ip:
-        return ''
+def _hostname_dns(ip):
+    """Nome via DNS reverso (PTR). '' se não resolver."""
     try:
         return socket.gethostbyaddr(ip)[0]
     except Exception:
         return ''
+
+
+def _hostname_netbios(ip):
+    """
+    Nome da máquina via NetBIOS (rede Windows), usando `nmblookup -A <ip>`.
+    Funciona mesmo sem DNS reverso. Requer o pacote samba-common-bin.
+    Retorna '' se o utilitário não existir ou não achar o nome.
+    """
+    try:
+        saida = subprocess.run(
+            ['nmblookup', '-A', ip],
+            capture_output=True, text=True, timeout=3,
+        ).stdout
+    except Exception:
+        return ''
+    # A linha do nome da estação é a que tem <00> e NÃO é <GROUP>.
+    for linha in saida.splitlines():
+        if '<00>' in linha and '<GROUP>' not in linha:
+            nome = linha.split()[0].strip()
+            if nome:
+                return nome
+    return ''
+
+
+def _hostname(ip):
+    """
+    Resolve o hostname da máquina de origem. Prioriza NetBIOS (rede Windows)
+    e usa DNS reverso como reserva. Retorna '' se nada resolver.
+    """
+    if not ip:
+        return ''
+    try:
+        ipaddress.ip_address(ip)  # valida antes de chamar processo externo
+    except ValueError:
+        return ''
+    return _hostname_netbios(ip) or _hostname_dns(ip)
 
 
 def _consultar_status():
