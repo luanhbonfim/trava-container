@@ -168,6 +168,13 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'painel'
 LOGOUT_REDIRECT_URL = 'login'
 
+# Nomes de cookie PRÓPRIOS deste app. Cookies do navegador não são isolados
+# por porta, só por host — sem isto, este app (ex.: 10.10.1.168:3102) colide
+# com outro projeto Django no mesmo host (ex.: 10.10.1.168:3100), causando
+# falha de CSRF e confusão de sessão.
+SESSION_COOKIE_NAME = 'peso_sessionid'
+CSRF_COOKIE_NAME = 'peso_csrftoken'
+
 # Janela de acesso de SEGURANÇA (absoluta): a sessão vale por 1 minuto
 # contado a partir do login e NÃO é renovada por atividade — passou o tempo,
 # é preciso logar de novo. Também expira ao fechar o navegador.
